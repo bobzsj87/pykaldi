@@ -1,5 +1,5 @@
-# Dockerfile for building PyKaldi image from Ubuntu 16.04 image
-FROM ubuntu:16.04
+# Dockerfile for building PyKaldi image from Ubuntu 18.04 image
+FROM ubuntu:18.04
 
 # Install necessary system packages
 RUN apt-get update \
@@ -21,7 +21,8 @@ RUN apt-get update \
     subversion \
     unzip \
     wget \
-    zlib1g-dev
+    zlib1g-dev \
+    sox
 
 # Make python3 default
 RUN ln -s /usr/bin/python3 /usr/bin/python \
