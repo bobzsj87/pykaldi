@@ -1,0 +1,41 @@
+FROM python:3.7
+
+# Install necessary system packages
+RUN apt-get update \
+    && apt-get install -y \
+    autoconf \
+    automake \
+    cmake \
+    curl \
+    g++ \
+    git \
+    graphviz \
+    libatlas3-base \
+    libtool \
+    make \
+    pkg-config \
+    subversion \
+    unzip \
+    wget \
+    zlib1g-dev \
+    sox
+    
+# Install necessary Python packages
+RUN pip install --upgrade \
+    numpy \
+    setuptools \
+    pyparsing \
+    jupyter \
+    ninja
+
+# Copy pykaldi directory into the container
+COPY . /pykaldi
+
+# Install Protobuf, CLIF, Kaldi and PyKaldi
+RUN cd /pykaldi/tools \
+    && ./check_dependencies.sh \
+    && ./install_protobuf.sh \
+    && ./install_clif.sh \
+    && ./install_kaldi.sh \
+    && cd .. \
+    && python setup.py install
