@@ -1,0 +1,64 @@
+# Dockerfile for building PyKaldi min image
+# combine Dockerfile.min and travis.master
+# build in one run
+FROM python:3.7
+
+# We do this in a single RUN so that it does not add weight by creating layers
+RUN apt-get update \
+    && apt-get install -y \
+    autoconf \
+    automake \
+    cmake \
+    curl \
+    g++ \
+    git \
+    graphviz \
+    libatlas3-base \
+    libtool \
+    make \
+    pkg-config \
+    subversion \
+    unzip \
+    wget \
+    zlib1g-dev \
+    sox \
+    && pip install --upgrade numpy setuptools pyparsing jupyter ninja \
+    && cd / \
+    && git clone https://github.com/pykaldi/pykaldi.git \
+    && git clone -b pykaldi https://github.com/pykaldi/kaldi.git \
+    && cd kaldi/tools \
+    && mkdir -p python \
+    && touch python/.use_default_python \
+    && make cub \
+    && make -j12 openfst OPENFST_CONFIGURE="--enable-shared --enable-bin --disable-dependency-tracking" \
+    && rm -rf openfst/src/script/.libs \
+    && cd ../src \
+    && ./configure --shared \
+    && make clean \
+    && make depend -j \
+    && make -j4 \
+    && find . -name "*.a" -delete \
+    && find . -name "*.o" -delete \
+    && cd / \
+    && git clone -b 3.8.x https://github.com/protocolbuffers/protobuf.git protobuf \
+    && cd protobuf \
+    && ./autogen.sh \
+    && ./configure --prefix /usr --disable-static --disable-dependency-tracking \
+    && make -j12 \
+    && make install \
+    && cd python \
+    && python setup.py build \
+    && python setup.py install \
+    && cd / \
+    && rm -rf protobuf \
+    && cd /pykaldi/tools/ \
+    && ./install_clif.sh \
+    && rm -rf clif_backend \
+    && rm -rf clif \
+    && ln -s /kaldi . \
+    && cd /pykaldi \
+    && python setup.py build \
+    && python setup.py install \
+    && python setup.py test \
+    && find kaldi -name "*.so" -delete \
+    && rm -rf build
