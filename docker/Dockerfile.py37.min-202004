@@ -1,9 +1,5 @@
-# Dockerfile for building PyKaldi min image
-# combine Dockerfile.min and travis.master
-# build in one run
-FROM python:3.7
-
-COPY . /pykaldi
+# Important to use stretch (Debian 9), Buster doesn't compile clif properly
+FROM python:3.7-stretch
 
 # We do this in a single RUN so that it does not add weight by creating layers
 RUN apt-get update \
@@ -19,14 +15,18 @@ RUN apt-get update \
     libtool \
     make \
     pkg-config \
+    sox \
     subversion \
     unzip \
     wget \
     zlib1g-dev \
-    sox \
-    && pip install --upgrade numpy setuptools pyparsing jupyter ninja \
+    && pip install --upgrade pip numpy setuptools pyparsing jupyter ninja \
     && cd / \
-    # && git clone https://github.com/pykaldi/pykaldi.git \
+    && wget https://raw.githubusercontent.com/kaldi-asr/kaldi/master/tools/extras/install_mkl.sh \
+    && chmod +x install_mkl.sh \
+    && ./install_mkl.sh && rm install_mkl.sh \
+    && git clone https://github.com/pykaldi/pykaldi.git \
+    # && cd /pykaldi/tools \
     && git clone -b pykaldi https://github.com/pykaldi/kaldi.git \
     && cd kaldi/tools \
     && mkdir -p python \
@@ -36,13 +36,14 @@ RUN apt-get update \
     && rm -rf openfst/src/script/.libs \
     && cd ../src \
     && ./configure --shared \
-    && make clean \
-    && make depend -j \
-    && make -j4 \
+    # && make -j12 depend \
+    # && make -j12 base matrix util feat tree gmm transform sgmm2 fstext hmm lm decoder lat cudamatrix nnet2 nnet3 rnnlm chain ivector online2 kws \
+    && make -j12 \
     && find . -name "*.a" -delete \
     && find . -name "*.o" -delete \
+    # && cd /pykaldi/tools \
     && cd / \
-    && git clone -b 3.11.x https://github.com/protocolbuffers/protobuf.git protobuf \
+    && git clone -b 3.11.x https://github.com/google/protobuf.git protobuf \
     && cd protobuf \
     && ./autogen.sh \
     && ./configure --prefix /usr --disable-static --disable-dependency-tracking \
@@ -51,12 +52,15 @@ RUN apt-get update \
     && cd python \
     && python setup.py build \
     && python setup.py install \
+    # && cd /pykaldi/tools \
     && cd / \
     && rm -rf protobuf \
     && cd /pykaldi/tools/ \
+    && rm install_clif.sh \
+    && wget https://raw.githubusercontent.com/bobzsj87/pykaldi/py37/tools/install_clif.sh \
+    && chmod +x install_clif.sh \
     && ./install_clif.sh \
     && rm -rf clif_backend \
-    && rm -rf clif \
     && ln -s /kaldi . \
     && cd /pykaldi \
     && python setup.py build \
