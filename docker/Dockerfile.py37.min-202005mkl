@@ -35,7 +35,7 @@ RUN apt-get update \
     && make -j12 openfst OPENFST_CONFIGURE="--enable-shared --enable-bin --disable-dependency-tracking" \
     && rm -rf openfst/src/script/.libs \
     && cd ../src \
-    && ./configure --shared --mkl-root=/opt/intel/mkl \
+    && ./configure --shared --mkl-root=/opt/intel/mkl --mathlib=MKL \
     # && ./configure --shared \
     # && make -j12 depend \
     # && make -j12 base matrix util feat tree gmm transform sgmm2 fstext hmm lm decoder lat cudamatrix nnet2 nnet3 rnnlm chain ivector online2 kws \
